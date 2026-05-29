@@ -1,3 +1,4 @@
 /*
   X-Frame-Options: ALLOWALL
-  Content-Security-Policy: frame-ancestors *
+  Content-Security-Policy: frame-ancestors https://vk.com https://*.vk.com https://*.vk-apps.com
+  Access-Control-Allow-Origin: *
