@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Генератор Судьбы</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Inconsolata:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0a0a0f;
+    --bg2: #111118;
+    --card: #16161f;
+    --border: rgba(255,255,255,0.08);
+    --border2: rgba(255,255,255,0.15);
+    --gold: #c9a84c;
+    --gold2: #e8c96e;
+    --gold-dim: rgba(201,168,76,0.15);
+    --text: #f0ede4;
+    --muted: rgba(240,237,228,0.5);
+    --faint: rgba(240,237,228,0.25);
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inconsolata', monospace;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem 1rem;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 60% 40% at 50% 0%, rgba(201,168,76,0.07) 0%, transparent 70%),
+      radial-gradient(ellipse 40% 60% at 80% 100%, rgba(100,80,180,0.06) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .stars {
+    position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden;
+  }
+  .star {
+    position: absolute;
+    width: 1px; height: 1px;
+    background: white;
+    border-radius: 50%;
+    animation: twinkle var(--dur, 3s) ease-in-out infinite var(--delay, 0s);
+    opacity: var(--base, 0.3);
+  }
+  @keyframes twinkle {
+    0%, 100% { opacity: var(--base, 0.3); }
+    50% { opacity: 0.8; }
+  }
+
+  .wrap {
+    position: relative; z-index: 1;
+    width: 100%; max-width: 520px;
+    display: flex; flex-direction: column; align-items: center; gap: 2rem;
+  }
+
+  .header { text-align: center; }
+  .eyebrow {
+    font-family: 'Inconsolata', monospace;
+    font-size: 11px; letter-spacing: 0.25em; text-transform: uppercase;
+    color: var(--gold); margin-bottom: 0.75rem;
+  }
+  h1 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(2.8rem, 8vw, 4rem);
+    font-weight: 400;
+    line-height: 1;
+    color: var(--text);
+    letter-spacing: -0.01em;
+  }
+  h1 em {
+    font-style: italic;
+    color: var(--gold2);
+  }
+  .tagline {
+    font-size: 12px; color: var(--muted); margin-top: 0.75rem; letter-spacing: 0.05em;
+  }
+
+  .categories {
+    display: flex; gap: 6px; flex-wrap: wrap; justify-content: center;
+  }
+  .cat {
+    font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase;
+    padding: 6px 14px;
+    border: 0.5px solid var(--border2);
+    border-radius: 2px;
+    background: transparent;
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: 'Inconsolata', monospace;
+  }
+  .cat:hover { border-color: var(--gold); color: var(--gold); }
+  .cat.active { border-color: var(--gold); color: var(--gold); background: var(--gold-dim); }
+
+  .orb-section { position: relative; }
+  .orb-ring {
+    width: 200px; height: 200px; border-radius: 50%;
+    border: 0.5px solid var(--border2);
+    display: flex; align-items: center; justify-content: center;
+    position: relative;
+    animation: ring-pulse 4s ease-in-out infinite;
+  }
+  @keyframes ring-pulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(201,168,76,0.0), 0 0 30px rgba(201,168,76,0.04); }
+    50% { box-shadow: 0 0 0 12px rgba(201,168,76,0.04), 0 0 60px rgba(201,168,76,0.08); }
+  }
+
+  .orb-btn {
+    width: 148px; height: 148px; border-radius: 50%;
+    background: var(--card);
+    border: 0.5px solid var(--border2);
+    cursor: pointer;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;
+    transition: transform 0.2s, border-color 0.3s;
+    position: relative; overflow: hidden;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .orb-btn::before {
+    content: '';
+    position: absolute; inset: 0; border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, rgba(255,255,255,0.04) 0%, transparent 60%);
+  }
+  .orb-btn:hover { transform: scale(1.04); border-color: var(--gold); }
+  .orb-btn:active { transform: scale(0.96); }
+  .orb-btn.spinning .orb-glyph { animation: spin-glyph 0.8s ease-in-out; }
+  @keyframes spin-glyph {
+    0% { transform: scale(1) rotate(0deg); opacity: 1; }
+    40% { transform: scale(0.3) rotate(180deg); opacity: 0; }
+    60% { transform: scale(0.3) rotate(180deg); opacity: 0; }
+    100% { transform: scale(1) rotate(360deg); opacity: 1; }
+  }
+  .orb-glyph { font-size: 36px; line-height: 1; }
+  .orb-label {
+    font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase;
+    color: var(--faint); font-family: 'Inconsolata', monospace;
+  }
+
+  .corner {
+    position: absolute;
+    width: 12px; height: 12px;
+    border-color: var(--gold);
+    border-style: solid;
+    opacity: 0.5;
+  }
+  .corner.tl { top: 0; left: 0; border-width: 1px 0 0 1px; }
+  .corner.tr { top: 0; right: 0; border-width: 1px 1px 0 0; }
+  .corner.bl { bottom: 0; left: 0; border-width: 0 0 1px 1px; }
+  .corner.br { bottom: 0; right: 0; border-width: 0 1px 1px 0; }
+
+  .result-box {
+    width: 100%;
+    background: var(--card);
+    border: 0.5px solid var(--border);
+    padding: 2rem 1.75rem;
+    position: relative;
+    min-height: 130px;
+    display: flex; align-items: center; justify-content: center;
+    transition: border-color 0.4s;
+  }
+  .result-box.revealed { border-color: rgba(201,168,76,0.3); }
+
+  .result-inner { text-align: center; }
+  .result-emoji { font-size: 42px; line-height: 1; margin-bottom: 0.75rem; display: block; }
+  .result-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.7rem; font-weight: 600;
+    color: var(--text); line-height: 1.2; margin-bottom: 0.5rem;
+  }
+  .result-sub { font-size: 12px; color: var(--muted); line-height: 1.6; }
+  .result-placeholder { font-size: 12px; color: var(--faint); letter-spacing: 0.1em; }
+
+  .result-box .corner { opacity: 0.3; }
+  .result-box.revealed .corner { opacity: 0.7; }
+
+  .footer-row {
+    display: flex; align-items: center; justify-content: space-between;
+    width: 100%; font-size: 11px; color: var(--faint);
+    letter-spacing: 0.08em;
+  }
+  .counter { font-variant-numeric: tabular-nums; }
+  .hint-text { font-style: italic; font-family: 'Cormorant Garamond', serif; font-size: 13px; }
+
+  .divider {
+    width: 100%; height: 0.5px;
+    background: linear-gradient(90deg, transparent, var(--border2), transparent);
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .fade-in { animation: fadeIn 0.4s ease forwards; }
+</style>
+</head>
+<body>
+
+<div class="stars" id="stars"></div>
+
+<div class="wrap">
+
+  <div class="header">
+    <div class="eyebrow">✦ Оракул вселенной ✦</div>
+    <h1>Твоя<br><em>Судьба</em></h1>
+    <div class="tagline">Точность предсказаний: достаточная</div>
+  </div>
+
+  <div class="categories">
+    <button class="cat active" onclick="setCategory('all',this)">Всё подряд</button>
+    <button class="cat" onclick="setCategory('career',this)">Карьера</button>
+    <button class="cat" onclick="setCategory('love',this)">Любовь</button>
+    <button class="cat" onclick="setCategory('life',this)">Жизнь</button>
+    <button class="cat" onclick="setCategory('weird',this)">Абсурд</button>
+  </div>
+
+  <div class="orb-section">
+    <div class="orb-ring">
+      <button class="orb-btn" id="orb" onclick="reveal()" aria-label="Узнать судьбу">
+        <div class="orb-glyph" id="orb-glyph">🔮</div>
+        <div class="orb-label" id="orb-label">Нажми</div>
+      </button>
+    </div>
+    <div class="corner tl" style="top:-16px;left:-16px"></div>
+    <div class="corner tr" style="top:-16px;right:-16px"></div>
+    <div class="corner bl" style="bottom:-16px;left:-16px"></div>
+    <div class="corner br" style="bottom:-16px;right:-16px"></div>
+  </div>
+
+  <div class="result-box" id="result-box">
+    <div class="corner tl"></div>
+    <div class="corner tr"></div>
+    <div class="corner bl"></div>
+    <div class="corner br"></div>
+    <div class="result-inner" id="result-inner">
+      <div class="result-placeholder">— ожидание предсказания —</div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="footer-row">
+    <span class="counter" id="counter">Предсказаний получено: 0</span>
+    <span class="hint-text" id="hint"></span>
+  </div>
+
+</div>
+
+<script>
+const fates = {
+  career: [
+    { e:"💼", t:"Тебя повысят", s:"Прямо сегодня. Или нет — но когда-нибудь точно." },
+    { e:"🖨️", t:"Принтер снова сломается", s:"И именно в тот момент, когда тебе очень нужно." },
+    { e:"📊", t:"Твой отчёт оценят", s:"По крайней мере, ты сам." },
+    { e:"🧑‍💻", t:"Ты найдёшь баг", s:"Который сам же и написал три года назад." },
+    { e:"☕", t:"Кофе-машина сломается", s:"В самый ответственный дедлайн." },
+    { e:"📧", t:"Придёт письмо", s:"«Небольшой вопрос» растянется на три встречи." },
+    { e:"🤝", t:"Новый коллега окажется ничего", s:"Если не считать привычки греть рыбу в микроволновке." },
+    { e:"📌", t:"Встреча отменится", s:"За 5 минут до начала. Ты уже открыл Zoom." },
+  ],
+  love: [
+    { e:"💘", t:"Встретишь интересного человека", s:"Вы оба уставитесь в телефон и ничего не скажете." },
+    { e:"🌹", t:"Тебя пригласят на свидание", s:"Это будет кот. Но он тебя любит." },
+    { e:"🥐", t:"Кто-то испечёт тебе круассан", s:"Бессознательное проявление симпатии — не игнорируй." },
+    { e:"📱", t:"Будешь смотреть сториз", s:"И случайно поставишь лайк посту 2019 года. Удачи." },
+    { e:"❤️", t:"Любовь найдёт тебя", s:"Но сначала ты час проведёшь в очереди в магазине." },
+    { e:"💌", t:"Получишь неожиданное сообщение", s:"Автозамена сделает его очень интересным." },
+  ],
+  life: [
+    { e:"🛌", t:"Ляжешь спать в 23:00", s:"По факту — в 01:47. Но намерение считается." },
+    { e:"🏃", t:"Начнёшь бегать по утрам", s:"Завтра. Или в следующий понедельник. Честно." },
+    { e:"🍕", t:"Закажешь доставку", s:"И будешь ждать на 20 минут дольше обещанного." },
+    { e:"🔑", t:"Потеряешь ключи", s:"Они будут в кармане куртки, которая на тебе." },
+    { e:"☀️", t:"День будет хорошим", s:"Особенно если сравнивать с худшими вариантами." },
+    { e:"📦", t:"Разберёшь старые коробки", s:"И найдёшь вещи, которые искал два года назад." },
+    { e:"🛒", t:"Пойдёшь за хлебом", s:"Вернёшься с тремя пакетами. Хлеб будет." },
+  ],
+  weird: [
+    { e:"🦆", t:"Утка посмотрит с осуждением", s:"Ты поймёшь — заслужено." },
+    { e:"🪴", t:"Твой кактус напишет мемуары", s:"Глава первая: «Они снова забыли полить»." },
+    { e:"🌀", t:"Встретишь параллельную версию себя", s:"Она тоже пытается понять, что происходит." },
+    { e:"🧦", t:"Второй носок найдётся", s:"Там, где ты уже смотрел. Дважды." },
+    { e:"🤖", t:"Холодильник начнёт давать советы", s:"Зачастую они будут разумнее, чем кажется." },
+    { e:"🌮", t:"Тако изменит твою жизнь", s:"Это прозвучит глупо. Пока не случится." },
+    { e:"📡", t:"Тебя обнаружит инопланетная цивилизация", s:"Но решит пока не беспокоить." },
+    { e:"🦕", t:"Динозавр звонил", s:"Ты не взял трубку. Он перезвонит." },
+    { e:"🍄", t:"Гриб знает правду", s:"Но молчит. Из уважения к тебе." },
+    { e:"🧲", t:"Притянешь странных людей", s:"Они расскажут очень важное. Ты не поверишь." },
+  ],
+};
+
+const hints = [
+  "Звёзды сказали именно это",
+  "Оспорить решение вселенной нельзя",
+  "Точность 100% — по нашей статистике",
+  "Распечатай и повесь на стену",
+  "Это официально задокументировано",
+  "Судьба не перезванивает",
+  "Можно нажать ещё раз, но зачем",
+];
+
+let category = 'all';
+let count = 0;
+
+function setCategory(cat, btn) {
+  category = cat;
+  document.querySelectorAll('.cat').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+function getPool() {
+  if (category === 'all') return Object.values(fates).flat();
+  return fates[category] || [];
+}
+
+function reveal() {
+  const orb = document.getElementById('orb');
+  const glyph = document.getElementById('orb-glyph');
+  const label = document.getElementById('orb-label');
+  const box = document.getElementById('result-box');
+  const inner = document.getElementById('result-inner');
+
+  orb.classList.add('spinning');
+  orb.disabled = true;
+  label.textContent = '...';
+  inner.innerHTML = '<div class="result-placeholder" style="letter-spacing:0.2em">· · ·</div>';
+  box.classList.remove('revealed');
+
+  setTimeout(() => {
+    const pool = getPool();
+    const fate = pool[Math.floor(Math.random() * pool.length)];
+    count++;
+
+    glyph.textContent = fate.e;
+    orb.classList.remove('spinning');
+    orb.disabled = false;
+    label.textContent = 'Ещё раз';
+    box.classList.add('revealed');
+
+    inner.innerHTML = `
+      <div class="fade-in">
+        <span class="result-emoji">${fate.e}</span>
+        <div class="result-title">${fate.t}</div>
+        <div class="result-sub">${fate.s}</div>
+      </div>
+    `;
+
+    document.getElementById('counter').textContent = `Предсказаний получено: ${count}`;
+    document.getElementById('hint').textContent = hints[Math.floor(Math.random() * hints.length)];
+  }, 850);
+}
+
+// Stars
+const starEl = document.getElementById('stars');
+for (let i = 0; i < 80; i++) {
+  const s = document.createElement('div');
+  s.className = 'star';
+  s.style.cssText = `
+    left:${Math.random()*100}%;
+    top:${Math.random()*100}%;
+    --dur:${2+Math.random()*4}s;
+    --delay:-${Math.random()*4}s;
+    --base:${0.1+Math.random()*0.4};
+    width:${Math.random()<0.2?2:1}px;
+    height:${Math.random()<0.2?2:1}px;
+  `;
+  starEl.appendChild(s);
+}
+</script>
+</body>
+</html>
