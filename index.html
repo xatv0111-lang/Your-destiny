@@ -28,8 +28,12 @@
 ========================= */
 
 // Проверка — открыто ли внутри VK
-if (typeof vkBridge === 'undefined') {
-  document.body.innerHTML = '<h2 style="color:white;text-align:center;margin-top:40vh;">Открой приложение через ВКонтакте</h2>';
+if (typeof vkBridge !== 'undefined') {
+  vkBridge.send('VKWebAppInit')
+    .then(() => console.log('VK Mini App initialized'))
+    .catch(console.error);
+} else {
+  console.log('Открыто вне VK');
 } else {
   vkBridge.send('VKWebAppInit')
     .then(() => {
