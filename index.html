@@ -5,24 +5,17 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Генератор Судьбы</title>
 
+<!-- VK Bridge -->
 <script src="https://unpkg.com/@vkontakte/vk-bridge/dist/browser.min.js"></script>
 
 <style>
-/* ===== ТВОЙ ОРИГИНАЛЬНЫЙ СТИЛЬ ===== */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
   --bg: #0a0a0f;
-  --bg2: #111118;
   --card: #16161f;
-  --border: rgba(255,255,255,0.08);
-  --border2: rgba(255,255,255,0.15);
   --gold: #c9a84c;
-  --gold2: #e8c96e;
-  --gold-dim: rgba(201,168,76,0.15);
   --text: #f0ede4;
-  --muted: rgba(240,237,228,0.5);
-  --faint: rgba(240,237,228,0.25);
 }
 
 body {
@@ -33,42 +26,59 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
+  overflow: hidden;
 }
 
 .wrap {
-  width: 100%;
-  max-width: 520px;
   text-align: center;
 }
 
 h1 {
-  font-family: Georgia, serif;
   font-size: 3rem;
+  margin-bottom: 20px;
 }
 
 .orb-ring {
-  width: 200px; height: 200px;
+  width: 200px;
+  height: 200px;
   border-radius: 50%;
-  border: 1px solid var(--border2);
-  margin: 40px auto;
+  border: 1px solid rgba(255,255,255,0.2);
   display: flex;
   align-items: center;
   justify-content: center;
+  margin: auto;
+  animation: pulse 4s infinite;
+}
+
+@keyframes pulse {
+  0%,100% { box-shadow: 0 0 20px rgba(201,168,76,0.1); }
+  50% { box-shadow: 0 0 50px rgba(201,168,76,0.3); }
 }
 
 .orb-btn {
-  width: 140px; height: 140px;
+  width: 140px;
+  height: 140px;
   border-radius: 50%;
   background: var(--card);
-  border: 1px solid var(--border2);
-  cursor: pointer;
+  border: 1px solid rgba(255,255,255,0.2);
   font-size: 40px;
+  cursor: pointer;
 }
 
-.result-box {
-  margin-top: 20px;
+.result {
+  margin-top: 30px;
   padding: 20px;
-  border: 1px solid var(--border);
+  border: 1px solid rgba(255,255,255,0.1);
+}
+
+/* звезды */
+.star {
+  position: fixed;
+  width: 2px;
+  height: 2px;
+  background: white;
+  border-radius: 50%;
+  opacity: 0.6;
 }
 </style>
 </head>
@@ -82,28 +92,34 @@ h1 {
     <button class="orb-btn" onclick="reveal()">🔮</button>
   </div>
 
-  <div class="result-box" id="result">
-    — ожидание предсказания —
+  <div class="result" id="result">
+    Нажми, чтобы узнать
   </div>
 </div>
 
 <script>
-/* ===== VK INIT (ИСПРАВЛЕНО) ===== */
+/* =====================
+   VK INIT (НЕ ЗАВИСАЕТ)
+===================== */
 try {
-  if (typeof vkBridge !== 'undefined') {
+  if (window.vkBridge) {
     vkBridge.send('VKWebAppInit')
-      .then(() => console.log('VK Mini App initialized'))
-      .catch(console.error);
+      .then(() => console.log('VK OK'))
+      .catch(() => console.log('VK fail'));
   }
-} catch (e) {}
+} catch (e) {
+  console.log('VK skipped');
+}
 
-/* ===== ТВОЯ ЛОГИКА ===== */
+/* =====================
+   ЛОГИКА
+===================== */
 const fates = [
-  "Тебя ждёт неожиданный поворот",
-  "Сегодня всё сложится удачно",
-  "Кто-то думает о тебе",
-  "Лучше отдохни сегодня",
-  "Сюрприз уже близко"
+  "Тебя ждёт неожиданный поворот 🔥",
+  "Сегодня всё сложится удачно 🍀",
+  "Кто-то думает о тебе ❤️",
+  "Лучше отдохни сегодня 😴",
+  "Сюрприз уже близко 🎁"
 ];
 
 function reveal() {
@@ -111,25 +127,17 @@ function reveal() {
   el.innerText = fates[Math.floor(Math.random() * fates.length)];
 }
 
-/* ===== ЗВЁЗДЫ ===== */
-const stars = document.createElement('div');
-stars.style.position = 'fixed';
-stars.style.inset = 0;
-stars.style.pointerEvents = 'none';
-document.body.appendChild(stars);
-
-for (let i = 0; i < 80; i++) {
+/* =====================
+   ЗВЁЗДЫ (без ошибок)
+===================== */
+for (let i = 0; i < 60; i++) {
   const s = document.createElement('div');
-  s.style.position = 'absolute';
-  s.style.width = '2px';
-  s.style.height = '2px';
-  s.style.background = 'white';
+  s.className = 'star';
   s.style.left = Math.random() * 100 + '%';
   s.style.top = Math.random() * 100 + '%';
-  stars.appendChild(s);
+  document.body.appendChild(s);
 }
 </script>
 
 </body>
-</html>
 </html>
